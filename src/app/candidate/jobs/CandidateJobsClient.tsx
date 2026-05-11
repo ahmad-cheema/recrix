@@ -13,6 +13,7 @@ import {
   CardTitle,
   Modal,
   ProgressBar,
+  ScoreBadge,
   Spinner,
 } from "@/components/ui";
 import {
@@ -42,6 +43,13 @@ type Job = {
 };
 
 type UploadState = "idle" | "uploading" | "success" | "error";
+type Application = {
+  id: string;
+  job_id: string;
+  status: string;
+  match_score: number | null;
+  risk_evaluation: string | null;
+};
 
 function formatFileSize(bytes: number) {
   if (bytes < 1024) {
@@ -53,8 +61,17 @@ function formatFileSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export default function CandidateJobsClient({ jobs }: { jobs: Job[] }) {
+export default function CandidateJobsClient({
+  jobs,
+  applications,
+}: {
+  jobs: Job[];
+  applications: Application[];
+}) {
   const router = useRouter();
+  const applicationsByJobId = React.useMemo(() => {
+    return new Map(applications.map((application) => [application.job_id, application]));
+  }, [applications]);
   const [selectedJob, setSelectedJob] = React.useState<Job | null>(null);
   const [file, setFile] = React.useState<File | null>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -70,6 +87,9 @@ export default function CandidateJobsClient({ jobs }: { jobs: Job[] }) {
   }, []);
 
   function openModal(job: Job) {
+    if (applicationsByJobId.has(job.id)) {
+      return;
+    }
     setSelectedJob(job);
     resetUpload();
   }
@@ -101,6 +121,13 @@ export default function CandidateJobsClient({ jobs }: { jobs: Job[] }) {
     setDragActive(false);
     const dropped = event.dataTransfer.files?.[0];
     handleFileSelect(dropped ?? null);
+  }
+
+  function formatStatus(value: string) {
+    return value
+      .split("_")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
   }
 
   async function submitApplication() {
@@ -175,7 +202,10 @@ export default function CandidateJobsClient({ jobs }: { jobs: Job[] }) {
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
-            {jobs.map((job) => (
+            {jobs.map((job) => {
+              const application = applicationsByJobId.get(job.id);
+
+              return (
               <Card
                 key={job.id}
                 className="transition-transform duration-150 hover:scale-[1.005]"
@@ -188,13 +218,23 @@ export default function CandidateJobsClient({ jobs }: { jobs: Job[] }) {
                         {job.department} · {job.location}
                       </CardDescription>
                     </div>
-                    <Badge>{job.experience_level}</Badge>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge>{job.experience_level}</Badge>
+                      {application ? (
+                        <Badge>{formatStatus(application.status)}</Badge>
+                      ) : null}
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-[--text-secondary]">
                     {job.description}
                   </p>
+                  {application?.risk_evaluation ? (
+                    <p className="mt-3 text-xs text-[--text-muted]">
+                      {application.risk_evaluation}
+                    </p>
+                  ) : null}
                   <div className="mt-4 flex flex-wrap gap-2">
                     {job.required_skills.slice(0, 4).map((skill) => (
                       <Badge key={skill}>{skill}</Badge>
@@ -204,13 +244,23 @@ export default function CandidateJobsClient({ jobs }: { jobs: Job[] }) {
                     <span className="text-xs text-[--text-muted]">
                       {job.employment_type}
                     </span>
-                    <Button size="sm" onClick={() => openModal(job)}>
-                      Apply
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      {application?.match_score != null ? (
+                        <ScoreBadge score={application.match_score} />
+                      ) : null}
+                      <Button
+                        size="sm"
+                        onClick={() => openModal(job)}
+                        disabled={Boolean(application)}
+                      >
+                        {application ? "Applied" : "Apply"}
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            );
+            })}
           </div>
         )}
       </motion.div>

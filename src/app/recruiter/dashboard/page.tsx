@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from "@/components/ui";
 import { getSessionPayload } from "@/lib/auth/session";
+import { getRecruiterApplicationStats } from "@/lib/applications/service";
 import { listRecruiterJobs } from "@/lib/jobs/service";
 
 const primaryLinkClass =
@@ -32,6 +33,8 @@ export default async function RecruiterDashboardPage() {
 
   const jobs = await listRecruiterJobs(session.sub);
   const totalJobs = jobs.length;
+  const { total, pendingReview, scheduled, byJobId } =
+    await getRecruiterApplicationStats(session.sub);
 
   return (
     <div className="min-h-screen bg-[--background] px-6 py-10 text-[--text-primary]">
@@ -51,9 +54,9 @@ export default async function RecruiterDashboardPage() {
         <section className="grid gap-4 md:grid-cols-4">
           {[
             { label: "Total Jobs", value: totalJobs },
-            { label: "Total Applications", value: 0 },
-            { label: "Pending Review", value: 0 },
-            { label: "Scheduled Interviews", value: 0 },
+            { label: "Total Applications", value: total },
+            { label: "Pending Review", value: pendingReview },
+            { label: "Scheduled Interviews", value: scheduled },
           ].map((stat) => (
             <Card key={stat.label}>
               <CardHeader>
@@ -84,6 +87,7 @@ export default async function RecruiterDashboardPage() {
             ) : (
               <div className="flex flex-col gap-3">
                 {jobs.slice(0, 5).map((job) => (
+                  
                   <div
                     key={job.id}
                     className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-[--border] bg-[--surface-raised] px-4 py-3"
@@ -97,7 +101,7 @@ export default async function RecruiterDashboardPage() {
                       </p>
                     </div>
                     <div className="flex items-center gap-3 text-xs text-[--text-secondary]">
-                      <span>0 applications</span>
+                      <span>{byJobId[job.id] ?? 0} applications</span>
                       <Badge>{job.status}</Badge>
                     </div>
                   </div>
