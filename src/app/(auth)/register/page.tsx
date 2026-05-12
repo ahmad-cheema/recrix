@@ -11,6 +11,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  Checkbox,
+  Divider,
   Input,
   Spinner,
 } from "@/components/ui";
@@ -24,7 +26,7 @@ const entryMotion = {
 };
 
 function getRedirectPath(role: Role) {
-  return role === "recruiter" ? "/recruiter/dashboard" : "/candidate/jobs";
+  return role === "recruiter" ? "/recruiter/dashboard" : "/candidate/dashboard";
 }
 
 export default function RegisterPage() {
@@ -74,15 +76,25 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-[--background] px-6 py-12 text-[--text-primary]">
       <motion.div
-        className="mx-auto flex w-full max-w-md flex-col gap-6"
+        className="mx-auto flex w-full max-w-lg flex-col gap-6"
         {...entryMotion}
       >
+        <div className="text-center">
+          <p className="text-xs uppercase tracking-[0.2em] text-[--text-muted]">
+            Recrix
+          </p>
+          <h1 className="mt-3 text-2xl font-semibold">Create your account</h1>
+          <p className="mt-2 text-sm text-[--text-secondary]">
+            Choose a role and start your hiring or job search workflow.
+          </p>
+        </div>
+
         <Card>
           <CardHeader>
-            <CardTitle>Create your account</CardTitle>
-            <CardDescription>Pick a role to get started.</CardDescription>
+            <CardTitle>Sign up</CardTitle>
+            <CardDescription>Pick a role and verify your email.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col gap-4">
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
               <div className="grid gap-2">
                 <span className="text-sm text-[--text-secondary]">Role</span>
@@ -119,10 +131,7 @@ export default function RegisterPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <label
-                  className="text-sm text-[--text-secondary]"
-                  htmlFor="password"
-                >
+                <label className="text-sm text-[--text-secondary]" htmlFor="password">
                   Password
                 </label>
                 <Input
@@ -134,7 +143,15 @@ export default function RegisterPage() {
                   minLength={8}
                   placeholder="Minimum 8 characters"
                 />
+                <ul className="text-xs text-[--text-muted]">
+                  <li>Minimum 8 characters</li>
+                  <li>Include one letter and one number</li>
+                </ul>
               </div>
+
+              <Checkbox required>
+                I agree to the Terms and Conditions and Privacy Policy
+              </Checkbox>
 
               <AnimatePresence>
                 {error ? (
@@ -153,6 +170,17 @@ export default function RegisterPage() {
                 {loading ? <Spinner size="sm" /> : "Create account"}
               </Button>
             </form>
+
+            <Divider />
+
+            <div className="grid gap-2">
+              <Button variant="ghost" type="button" className="w-full">
+                Continue with Google
+              </Button>
+              <Button variant="ghost" type="button" className="w-full">
+                Continue with LinkedIn
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

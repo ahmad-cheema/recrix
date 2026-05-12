@@ -11,6 +11,8 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  Checkbox,
+  Divider,
   Input,
   Spinner,
 } from "@/components/ui";
@@ -23,7 +25,7 @@ const entryMotion = {
 };
 
 function getRedirectPath(role: Role) {
-  return role === "recruiter" ? "/recruiter/dashboard" : "/candidate/jobs";
+  return role === "recruiter" ? "/recruiter/dashboard" : "/candidate/dashboard";
 }
 
 export default function LoginPage() {
@@ -71,15 +73,25 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-[--background] px-6 py-12 text-[--text-primary]">
       <motion.div
-        className="mx-auto flex w-full max-w-md flex-col gap-6"
+        className="mx-auto flex w-full max-w-lg flex-col gap-6"
         {...entryMotion}
       >
+        <div className="text-center">
+          <p className="text-xs uppercase tracking-[0.2em] text-[--text-muted]">
+            Recrix
+          </p>
+          <h1 className="mt-3 text-2xl font-semibold">Welcome back</h1>
+          <p className="mt-2 text-sm text-[--text-secondary]">
+            Sign in to manage your pipeline or applications.
+          </p>
+        </div>
+
         <Card>
           <CardHeader>
-            <CardTitle>Welcome back</CardTitle>
-            <CardDescription>Sign in to continue.</CardDescription>
+            <CardTitle>Sign in</CardTitle>
+            <CardDescription>Use your email and password.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col gap-4">
             <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
               <div className="grid gap-2">
                 <label className="text-sm text-[--text-secondary]" htmlFor="email">
@@ -95,10 +107,7 @@ export default function LoginPage() {
                 />
               </div>
               <div className="grid gap-2">
-                <label
-                  className="text-sm text-[--text-secondary]"
-                  htmlFor="password"
-                >
+                <label className="text-sm text-[--text-secondary]" htmlFor="password">
                   Password
                 </label>
                 <Input
@@ -110,6 +119,13 @@ export default function LoginPage() {
                   minLength={8}
                   placeholder="Minimum 8 characters"
                 />
+              </div>
+
+              <div className="flex items-center justify-between text-sm text-[--text-secondary]">
+                <Checkbox name="remember">Remember me</Checkbox>
+                <Link className="text-[--text-primary]" href="/forgot-password">
+                  Forgot password?
+                </Link>
               </div>
 
               <AnimatePresence>
@@ -129,6 +145,17 @@ export default function LoginPage() {
                 {loading ? <Spinner size="sm" /> : "Sign in"}
               </Button>
             </form>
+
+            <Divider />
+
+            <div className="grid gap-2">
+              <Button variant="ghost" type="button" className="w-full">
+                Continue with Google
+              </Button>
+              <Button variant="ghost" type="button" className="w-full">
+                Continue with LinkedIn
+              </Button>
+            </div>
           </CardContent>
         </Card>
 

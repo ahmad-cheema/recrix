@@ -184,11 +184,8 @@ export default function CandidateJobsClient({
   }
 
   return (
-    <div className="min-h-screen bg-[--background] px-6 py-10 text-[--text-primary]">
-      <motion.div
-        className="mx-auto flex w-full max-w-6xl flex-col gap-8"
-        {...entryMotion}
-      >
+    <div className="flex flex-col gap-8">
+      <motion.div className="flex flex-col gap-8" {...entryMotion}>
         <div>
           <h1 className="text-2xl font-semibold">Open roles</h1>
           <p className="mt-2 text-sm text-[--text-secondary]">

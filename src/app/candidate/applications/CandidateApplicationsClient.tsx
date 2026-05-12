@@ -101,71 +101,69 @@ export default function CandidateApplicationsClient({
   }
 
   return (
-    <div className="min-h-screen bg-[--background] px-6 py-10 text-[--text-primary]">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <div>
-          <h1 className="text-2xl font-semibold">Your applications</h1>
-          <p className="mt-2 text-sm text-[--text-secondary]">
-            Track match scores and start your mock interviews.
-          </p>
-        </div>
-
-        {error ? (
-          <div className="rounded-lg border border-[--destructive] bg-[--surface-raised] px-4 py-3 text-sm text-[--destructive]">
-            {error}
-          </div>
-        ) : null}
-
-        {applications.length === 0 ? (
-          <div className="rounded-xl border border-[--border] bg-[--surface] p-8 text-sm text-[--text-secondary]">
-            No applications yet.
-          </div>
-        ) : (
-          <div className="grid gap-4">
-            {applications.map((application) => (
-              <Card key={application.id}>
-                <CardHeader>
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                      <CardTitle>{application.job?.title ?? "Role"}</CardTitle>
-                      <CardDescription>
-                        {application.job?.department} · {application.job?.location}
-                      </CardDescription>
-                    </div>
-                    <Badge>{formatStatus(application.status)}</Badge>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-wrap items-center justify-between gap-4">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge>{application.job?.employment_type ?? ""}</Badge>
-                      <Badge>{application.job?.experience_level ?? ""}</Badge>
-                      {application.match_score != null ? (
-                        <ScoreBadge score={application.match_score} />
-                      ) : null}
-                    </div>
-                    <Button
-                      size="sm"
-                      onClick={() => startInterview(application.id)}
-                      disabled={
-                        (!sessions[application.id] &&
-                          application.status !== "interview_scheduled") ||
-                        loadingId === application.id
-                      }
-                    >
-                      {loadingId === application.id ? (
-                        <Spinner size="sm" />
-                      ) : (
-                        getActionLabel(application)
-                      )}
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-2xl font-semibold">Your applications</h1>
+        <p className="mt-2 text-sm text-[--text-secondary]">
+          Track match scores and start your mock interviews.
+        </p>
       </div>
+
+      {error ? (
+        <div className="rounded-lg border border-[--destructive] bg-[--surface-raised] px-4 py-3 text-sm text-[--destructive]">
+          {error}
+        </div>
+      ) : null}
+
+      {applications.length === 0 ? (
+        <div className="rounded-xl border border-[--border] bg-[--surface] p-8 text-sm text-[--text-secondary]">
+          No applications yet.
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {applications.map((application) => (
+            <Card key={application.id}>
+              <CardHeader>
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div>
+                    <CardTitle>{application.job?.title ?? "Role"}</CardTitle>
+                    <CardDescription>
+                      {application.job?.department} · {application.job?.location}
+                    </CardDescription>
+                  </div>
+                  <Badge>{formatStatus(application.status)}</Badge>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge>{application.job?.employment_type ?? ""}</Badge>
+                    <Badge>{application.job?.experience_level ?? ""}</Badge>
+                    {application.match_score != null ? (
+                      <ScoreBadge score={application.match_score} />
+                    ) : null}
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={() => startInterview(application.id)}
+                    disabled={
+                      (!sessions[application.id] &&
+                        application.status !== "interview_scheduled") ||
+                      loadingId === application.id
+                    }
+                  >
+                    {loadingId === application.id ? (
+                      <Spinner size="sm" />
+                    ) : (
+                      getActionLabel(application)
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

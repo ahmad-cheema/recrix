@@ -13,7 +13,7 @@ export default async function Home() {
   }
 
   if (session.role === "candidate") {
-    redirect("/candidate/jobs");
+    redirect("/candidate/dashboard");
   }
 
   redirect("/login");

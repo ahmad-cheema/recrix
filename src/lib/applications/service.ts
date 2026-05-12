@@ -21,6 +21,21 @@ type RecruiterApplicationListItem = {
   candidate: { id: string; email: string } | null;
 };
 
+type RecruiterPipelineItem = {
+  id: string;
+  status: ApplicationStatus;
+  match_score: number | null;
+  risk_evaluation: string | null;
+  created_at: string | null;
+  candidate: { id: string; email: string } | null;
+  job: {
+    id: string;
+    title: string;
+    department: string;
+    location: string;
+  } | null;
+};
+
 type CandidateApplicationListItem = {
   id: string;
   job_id: string;
@@ -251,6 +266,41 @@ export async function listCandidateApplications(
   return data;
 }
 
+export async function listRecruiterApplications(
+  recruiterId: string
+): Promise<RecruiterPipelineItem[]> {
+  const client = createAdminClient();
+
+  const { data: jobs, error: jobsError } = await client
+    .from("jobs")
+    .select("id, title, department, location")
+    .eq("recruiter_id", recruiterId);
+
+  if (jobsError) {
+    throw new AppError("INTERNAL_ERROR", "Failed to load applications.", 500);
+  }
+
+  const jobIds = jobs?.map((job) => job.id) ?? [];
+
+  if (!jobIds.length) {
+    return [];
+  }
+
+  const { data, error } = await client
+    .from("applications")
+    .select(
+      "id, status, match_score, risk_evaluation, created_at, candidate:users(id, email), job:jobs(id, title, department, location)"
+    )
+    .in("job_id", jobIds)
+    .order("created_at", { ascending: false });
+
+  if (error || !data) {
+    throw new AppError("INTERNAL_ERROR", "Failed to load applications.", 500);
+  }
+
+  return data;
+}
+
 export async function getRecruiterApplicationStats(
   recruiterId: string
 ): Promise<RecruiterApplicationStats> {
@@ -314,6 +364,7 @@ export async function getRecruiterApplicationDetail(
   candidate: { id: string; email: string };
   job: ApplicationDetailRow["job"];
   resume: ParsedResume | null;
+  resumeText: string | null;
 }> {
   const client = createAdminClient();
   const { data, error } = await client
@@ -341,12 +392,16 @@ export async function getRecruiterApplicationDetail(
   const parsedResume =
     (application.parsed_resume as { parsed?: ParsedResume } | null)?.parsed ??
     null;
+  const resumeText =
+    (application.parsed_resume as { raw_text?: string | null } | null)
+      ?.raw_text ?? null;
 
   return {
     application,
     candidate: application.candidate,
     job: application.job,
     resume: parsedResume,
+    resumeText,
   };
 }
 
