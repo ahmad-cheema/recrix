@@ -62,6 +62,13 @@ type Application = {
 
 type ViewMode = "grid" | "list";
 
+function ensureStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter((item): item is string => typeof item === "string");
+}
+
 function formatFileSize(bytes: number) {
   if (bytes < 1024) {
     return `${bytes} B`;
@@ -176,7 +183,8 @@ export default function CandidateJobsClient({
       }
       if (search.trim()) {
         const term = search.trim().toLowerCase();
-        const haystack = `${job.title} ${job.department} ${job.location} ${job.required_skills.join(" ")}`.toLowerCase();
+        const requiredSkills = ensureStringArray(job.required_skills);
+        const haystack = `${job.title} ${job.department} ${job.location} ${requiredSkills.join(" ")}`.toLowerCase();
         if (!haystack.includes(term)) {
           return false;
         }
@@ -419,6 +427,7 @@ export default function CandidateJobsClient({
             {filteredJobs.map((job) => {
               const application = applicationsByJobId.get(job.id);
               const isSaved = savedJobIds.has(job.id);
+              const requiredSkills = ensureStringArray(job.required_skills);
 
               return (
                 <Card key={job.id} className="transition-transform duration-150 hover:scale-[1.005]">
@@ -447,11 +456,11 @@ export default function CandidateJobsClient({
                   <CardContent>
                     <p className="line-clamp-2 text-sm text-[--text-secondary]">{job.description}</p>
                     <div className="mt-4 flex flex-wrap gap-2">
-                      {job.required_skills.slice(0, 4).map((skill) => (
+                      {requiredSkills.slice(0, 4).map((skill) => (
                         <Badge key={skill}>{skill}</Badge>
                       ))}
-                      {job.required_skills.length > 4 ? (
-                        <Badge>+{job.required_skills.length - 4}</Badge>
+                      {requiredSkills.length > 4 ? (
+                        <Badge>+{requiredSkills.length - 4}</Badge>
                       ) : null}
                     </div>
                     <div className="mt-4 flex items-center justify-between">
@@ -475,6 +484,7 @@ export default function CandidateJobsClient({
             {filteredJobs.map((job) => {
               const application = applicationsByJobId.get(job.id);
               const isSaved = savedJobIds.has(job.id);
+              const requiredSkills = ensureStringArray(job.required_skills);
 
               return (
                 <div
@@ -498,7 +508,7 @@ export default function CandidateJobsClient({
                     </div>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
-                    {job.required_skills.slice(0, 3).map((skill) => (
+                    {requiredSkills.slice(0, 3).map((skill) => (
                       <Badge key={skill}>{skill}</Badge>
                     ))}
                     <Badge>{job.experience_level}</Badge>

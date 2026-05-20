@@ -43,6 +43,76 @@ type Evaluation = {
   evaluated_at: string;
 };
 
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+  return value as Record<string, unknown>;
+}
+
+function asNumber(value: unknown, fallback = 0): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function asString(value: unknown, fallback = ""): string {
+  return typeof value === "string" ? value : fallback;
+}
+
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value
+    .map((entry) => (typeof entry === "string" ? entry : null))
+    .filter((entry): entry is string => Boolean(entry));
+}
+
+function asRecommendation(value: unknown): Evaluation["hiring_recommendation"] {
+  if (
+    value === "strongly_recommended" ||
+    value === "recommended" ||
+    value === "consider_with_reservations" ||
+    value === "not_recommended"
+  ) {
+    return value;
+  }
+  return "not_recommended";
+}
+
+function normalizeEvaluation(value: unknown): Evaluation | null {
+  const raw = asRecord(value);
+  if (!raw) {
+    return null;
+  }
+
+  return {
+    overall_match_score: asNumber(raw.overall_match_score),
+    skills_match_score: asNumber(raw.skills_match_score),
+    experience_match_score: asNumber(raw.experience_match_score),
+    education_match_score: asNumber(raw.education_match_score),
+    industry_relevance_score: asNumber(raw.industry_relevance_score),
+    leadership_alignment_score: asNumber(raw.leadership_alignment_score),
+    communication_indicators_score: asNumber(raw.communication_indicators_score),
+    candidate_summary: asString(raw.candidate_summary),
+    strengths: asStringArray(raw.strengths),
+    weaknesses: asStringArray(raw.weaknesses),
+    missing_skills: asStringArray(raw.missing_skills),
+    risk_factors: asStringArray(raw.risk_factors),
+    career_progression_analysis: asString(raw.career_progression_analysis),
+    recommended_interview_questions: asStringArray(
+      raw.recommended_interview_questions
+    ),
+    hiring_recommendation: asRecommendation(raw.hiring_recommendation),
+    recommendation_rationale: asString(raw.recommendation_rationale),
+    confidence_score: asNumber(raw.confidence_score),
+    uncertainty_notes: asStringArray(raw.uncertainty_notes),
+    model: asString(raw.model, "unknown"),
+    prompt_version: asString(raw.prompt_version, "unknown"),
+    evaluation_version: asString(raw.evaluation_version, "unknown"),
+    evaluated_at: asString(raw.evaluated_at, new Date().toISOString()),
+  };
+}
+
 const PIPELINE_STEPS = [
   "Extracting Resume Data",
   "Reading Job Description",
@@ -67,7 +137,11 @@ function scoreBand(score: number) {
 }
 
 function formatDateTime(value: string) {
-  return new Date(value).toLocaleString();
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "Unknown";
+  }
+  return date.toLocaleString();
 }
 
 export default function EvaluationPanel({
@@ -78,7 +152,7 @@ export default function EvaluationPanel({
   initialEvaluation: Evaluation | null;
 }) {
   const [evaluation, setEvaluation] = React.useState<Evaluation | null>(
-    initialEvaluation
+    normalizeEvaluation(initialEvaluation)
   );
   const [isRunning, setIsRunning] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -103,12 +177,13 @@ export default function EvaluationPanel({
         method: "POST",
       });
       const payload = (await response.json().catch(() => null)) as
-        | { error?: string; evaluation?: Evaluation }
+        | { error?: string; evaluation?: unknown }
         | null;
-      if (!response.ok || !payload?.evaluation) {
+      const normalized = normalizeEvaluation(payload?.evaluation);
+      if (!response.ok || !normalized) {
         throw new Error(payload?.error ?? "Evaluation failed.");
       }
-      setEvaluation(payload.evaluation);
+      setEvaluation(normalized);
     } catch (runError) {
       setError(
         runError instanceof Error ? runError.message : "Evaluation failed."
