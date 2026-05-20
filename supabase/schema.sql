@@ -5,8 +5,16 @@ create table if not exists public.users (
   email text not null,
   password_hash text not null,
   role text not null check (role in ('recruiter', 'candidate')),
-  created_at timestamptz not null default now()
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
 );
+
+alter table public.users
+  add column if not exists metadata jsonb not null default '{}'::jsonb;
+
+alter table public.users
+  add column if not exists updated_at timestamptz not null default now();
 
 create unique index if not exists users_email_unique
   on public.users (lower(email));
@@ -88,8 +96,45 @@ begin
 end;
 $$ language plpgsql;
 
+drop trigger if exists set_users_updated_at on public.users;
+create trigger set_users_updated_at
+  before update on public.users
+  for each row
+  execute function public.set_updated_at();
+
 drop trigger if exists set_interview_sessions_updated_at on public.interview_sessions;
 create trigger set_interview_sessions_updated_at
   before update on public.interview_sessions
   for each row
   execute function public.set_updated_at();
+
+create table if not exists public.saved_jobs (
+  id uuid primary key default gen_random_uuid(),
+  candidate_id uuid not null references public.users(id) on delete cascade,
+  job_id uuid not null references public.jobs(id) on delete cascade,
+  created_at timestamptz not null default now()
+);
+
+create unique index if not exists saved_jobs_unique_candidate_job
+  on public.saved_jobs (candidate_id, job_id);
+
+create index if not exists saved_jobs_candidate_id_idx
+  on public.saved_jobs (candidate_id);
+
+create table if not exists public.application_evaluations (
+  id uuid primary key default gen_random_uuid(),
+  application_id uuid not null references public.applications(id) on delete cascade,
+  model text not null,
+  prompt_version text not null,
+  evaluation_version text not null,
+  overall_match_score int not null check (overall_match_score between 0 and 100),
+  skills_match_score int not null check (skills_match_score between 0 and 100),
+  experience_match_score int not null check (experience_match_score between 0 and 100),
+  education_match_score int not null check (education_match_score between 0 and 100),
+  hiring_recommendation text not null,
+  payload jsonb not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists application_evaluations_application_id_idx
+  on public.application_evaluations (application_id, created_at desc);

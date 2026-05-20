@@ -222,3 +222,32 @@ export async function updateJob(
     throw new AppError("INTERNAL_ERROR", "Job update failed.", 500);
   }
 }
+
+export async function deleteJob(
+  jobId: string,
+  recruiterId: string
+): Promise<void> {
+  try {
+    const client = createAdminClient();
+    const { data, error } = await client
+      .from("jobs")
+      .delete()
+      .eq("id", jobId)
+      .eq("recruiter_id", recruiterId)
+      .select("id")
+      .maybeSingle();
+
+    if (error) {
+      throw new AppError("INTERNAL_ERROR", "Job delete failed.", 500);
+    }
+
+    if (!data) {
+      throw new AppError("NOT_FOUND", "Job not found.", 404);
+    }
+  } catch (error) {
+    if (error instanceof AppError) {
+      throw error;
+    }
+    throw new AppError("INTERNAL_ERROR", "Job delete failed.", 500);
+  }
+}

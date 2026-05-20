@@ -20,21 +20,28 @@ export type Database = {
           email: string;
           password_hash: string;
           role: Role;
+          metadata: Json;
           created_at: string | null;
+          updated_at: string | null;
         };
         Insert: {
           id?: string;
           email: string;
           password_hash: string;
           role: Role;
+          metadata?: Json;
           created_at?: string | null;
+          updated_at?: string | null;
         };
         Update: {
           email?: string;
           password_hash?: string;
           role?: Role;
+          metadata?: Json;
           created_at?: string | null;
+          updated_at?: string | null;
         };
+        Relationships: [];
       };
       jobs: {
         Row: {
@@ -77,6 +84,7 @@ export type Database = {
           status?: JobStatus;
           created_at?: string | null;
         };
+        Relationships: [];
       };
       applications: {
         Row: {
@@ -112,6 +120,7 @@ export type Database = {
           invited_at?: string | null;
           created_at?: string | null;
         };
+        Relationships: [];
       };
       interview_sessions: {
         Row: {
@@ -142,7 +151,75 @@ export type Database = {
           created_at?: string | null;
           updated_at?: string | null;
         };
+        Relationships: [];
+      };
+      saved_jobs: {
+        Row: {
+          id: string;
+          candidate_id: string;
+          job_id: string;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          candidate_id: string;
+          job_id: string;
+          created_at?: string | null;
+        };
+        Update: {
+          candidate_id?: string;
+          job_id?: string;
+          created_at?: string | null;
+        };
+        Relationships: [];
+      };
+      application_evaluations: {
+        Row: {
+          id: string;
+          application_id: string;
+          model: string;
+          prompt_version: string;
+          evaluation_version: string;
+          overall_match_score: number;
+          skills_match_score: number;
+          experience_match_score: number;
+          education_match_score: number;
+          hiring_recommendation: string;
+          payload: Json;
+          created_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          application_id: string;
+          model: string;
+          prompt_version: string;
+          evaluation_version: string;
+          overall_match_score: number;
+          skills_match_score: number;
+          experience_match_score: number;
+          education_match_score: number;
+          hiring_recommendation: string;
+          payload: Json;
+          created_at?: string | null;
+        };
+        Update: {
+          model?: string;
+          prompt_version?: string;
+          evaluation_version?: string;
+          overall_match_score?: number;
+          skills_match_score?: number;
+          experience_match_score?: number;
+          education_match_score?: number;
+          hiring_recommendation?: string;
+          payload?: Json;
+          created_at?: string | null;
+        };
+        Relationships: [];
       };
     };
+    Views: Record<never, never>;
+    Functions: Record<never, never>;
+    Enums: Record<never, never>;
+    CompositeTypes: Record<never, never>;
   };
 };

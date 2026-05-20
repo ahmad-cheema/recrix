@@ -1,36 +1,98 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Recrix
 
-## Getting Started
+AI-powered recruitment platform built with Next.js, TypeScript, Supabase/PostgreSQL, OpenAI, and Resend.
 
-First, run the development server:
+## Core Features
+
+- Recruiter and candidate authentication with role-based routing.
+- Recruiter job management (create, view, filter, duplicate, close/delete).
+- Candidate job discovery, save jobs, and application tracking.
+- Resume upload and AI-assisted resume parsing/scoring.
+- Recruiter application review with manual override support.
+- Interview invitation flow with email delivery.
+- Candidate mock interview sessions with answer feedback.
+- Recruiter/candidate dashboards and status-driven workflows.
+
+## Tech Stack
+
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS
+- Supabase + PostgreSQL
+- OpenAI API
+- Resend
+
+## Prerequisites
+
+- Node.js 18+
+- npm 9+
+- Supabase project (or any PostgreSQL instance compatible with the schema)
+- OpenAI API key
+- Resend API key (for interview invite emails)
+
+## Environment Variables
+
+Copy `.env.local.example` to `.env.local` and fill values:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+JWT_SECRET=
+DATABASE_URL=
+OPENAI_API_KEY=
+OPENAI_MODEL=
+RESEND_API_KEY=
+RESEND_FROM=
+NEXT_PUBLIC_APP_URL=
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Notes:
+- `OPENAI_MODEL` can be left empty to use the default model configured in code.
+- `RESEND_API_KEY` and `RESEND_FROM` are required for invite-email features.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Database Setup
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Apply SQL files in order:
 
-## Learn More
+1. `supabase/schema.sql`
+2. `supabase/seed.sql`
 
-To learn more about Next.js, take a look at the following resources:
+You can run these in Supabase SQL Editor (or equivalent PostgreSQL tooling).
+If you already have an older database, re-run `supabase/schema.sql` to apply
+new `users.metadata` and `users.updated_at` columns used by profile/settings.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Install and Run
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm install
+npm run dev
+```
 
-## Deploy on Vercel
+App URL: `http://localhost:3000`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Verification Commands
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run lint
+npm run typecheck
+npm run build
+```
+
+or all at once:
+
+```bash
+npm run check
+```
+
+## Demo Accounts (from seed data)
+
+- Recruiter: `sarah.chen@recrix.dev` / `recruiter123`
+- Recruiter: `marcus.wells@recrix.dev` / `recruiter123`
+- Candidate: `alex.rivera@candidate.dev` / `candidate123`
+- Candidate: `priya.sharma@candidate.dev` / `candidate123`
+
+## Project Documents
+
+- `docs/recrix_SRS.md`
+- `docs/recrix_detail_Design.md`

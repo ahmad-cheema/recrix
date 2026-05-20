@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { useCompletion } from "ai";
 import {
   Button,
   Card,
@@ -47,25 +46,8 @@ export default function InterviewClient({
     status === "completed"
   );
   const [showNext, setShowNext] = React.useState(false);
-
-  const { completion, isLoading, complete, setCompletion } = useCompletion({
-    api: `/api/interviews/${sessionId}/answer`,
-    onFinish: (_prompt, response) => {
-      const currentQuestion = questions[currentIndex];
-      const feedback = response.trim();
-
-      setAnswers((prev) => [
-        ...prev,
-        {
-          questionIndex: currentIndex,
-          question: currentQuestion,
-          answer,
-          feedback,
-        },
-      ]);
-      setShowNext(true);
-    },
-  });
+  const [completion, setCompletion] = React.useState("");
+  const [isLoading, setIsLoading] = React.useState(false);
 
   React.useEffect(() => {
     if (currentIndex >= questions.length && questions.length > 0) {
@@ -73,7 +55,7 @@ export default function InterviewClient({
     }
   }, [currentIndex, questions.length]);
 
-  function handleSubmit() {
+  async function handleSubmit() {
     const question = questions[currentIndex];
     if (!question || !answer.trim()) {
       return;
@@ -81,13 +63,57 @@ export default function InterviewClient({
 
     setShowNext(false);
     setCompletion("");
-    complete(answer.trim(), {
-      body: {
-        questionIndex: currentIndex,
-        question,
-        answer: answer.trim(),
-      },
-    });
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`/api/interviews/${sessionId}/answer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          questionIndex: currentIndex,
+          question,
+          answer: answer.trim(),
+        }),
+      });
+
+      if (!response.ok || !response.body) {
+        throw new Error("Unable to stream feedback.");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+      let fullText = "";
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        if (value) {
+          const chunk = decoder.decode(value, { stream: !done });
+          if (chunk) {
+            fullText += chunk;
+            setCompletion((prev) => prev + chunk);
+          }
+        }
+      }
+
+      const feedback = fullText.trim();
+
+      setAnswers((prev) => [
+        ...prev,
+        {
+          questionIndex: currentIndex,
+          question,
+          answer,
+          feedback,
+        },
+      ]);
+      setShowNext(true);
+    } catch {
+      setCompletion("Unable to generate feedback right now.");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   function goToNext() {

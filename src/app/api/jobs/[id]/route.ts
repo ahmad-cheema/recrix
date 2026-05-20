@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { AppError } from "@/lib/auth/errors";
 import { getSessionPayload } from "@/lib/auth/session";
 import { updateJobSchema } from "@/lib/jobs/validators";
-import { getJobById, updateJob } from "@/lib/jobs/service";
+import { deleteJob, getJobById, updateJob } from "@/lib/jobs/service";
 
 export async function GET(
   _request: Request,
@@ -79,5 +79,33 @@ export async function PATCH(
       );
     }
     return NextResponse.json({ error: "Job update failed." }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  _request: Request,
+  { params }: { params: { id: string } }
+) {
+  const session = await getSessionPayload();
+
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
+  }
+
+  if (session.role !== "recruiter") {
+    return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+  }
+
+  try {
+    await deleteJob(params.id, session.sub);
+    return NextResponse.json({ ok: true }, { status: 200 });
+  } catch (error) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.status }
+      );
+    }
+    return NextResponse.json({ error: "Job delete failed." }, { status: 500 });
   }
 }

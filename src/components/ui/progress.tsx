@@ -20,7 +20,7 @@ export function ProgressBar({
       )}
     >
       <motion.div
-        className="h-full rounded-full bg-[--text-primary]"
+        className="h-full rounded-full bg-[--accent]"
         initial={{ width: 0 }}
         animate={{ width: `${clamped}%` }}
         transition={{ duration: 0.2 }}

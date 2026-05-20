@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getSessionPayload } from "@/lib/auth/session";
 import { getInterviewSessionForCandidate } from "@/lib/interviews/service";
 import InterviewClient from "./InterviewClient";
+import CandidateInterviewLoading from "./loading";
 
 export default async function CandidateInterviewPage({
   params,
@@ -29,12 +31,14 @@ export default async function CandidateInterviewPage({
       | null) ?? [];
 
   return (
-    <InterviewClient
-      sessionId={interviewSession.id}
-      jobTitle={jobTitle}
-      questions={questions}
-      initialAnswers={answers}
-      status={interviewSession.status}
-    />
+    <Suspense fallback={<CandidateInterviewLoading />}>
+      <InterviewClient
+        sessionId={interviewSession.id}
+        jobTitle={jobTitle}
+        questions={questions}
+        initialAnswers={answers}
+        status={interviewSession.status}
+      />
+    </Suspense>
   );
 }

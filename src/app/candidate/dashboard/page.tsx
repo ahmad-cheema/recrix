@@ -15,9 +15,9 @@ import { listInterviewSessionsForApplications } from "@/lib/interviews/service";
 import { listActiveJobs } from "@/lib/jobs/service";
 
 const primaryLinkClass =
-  "inline-flex items-center justify-center gap-2 rounded-lg border border-transparent bg-[--text-primary] px-4 py-2 text-sm font-medium text-[--background] transition-colors hover:bg-[--accent-hover] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--border] focus-visible:ring-offset-2 focus-visible:ring-offset-[--background]";
+  "inline-flex items-center justify-center gap-2 rounded-lg border border-transparent bg-[--accent] px-4 py-2 text-sm font-medium text-[--background] transition-colors hover:bg-[--accent-hover] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--border] focus-visible:ring-offset-2 focus-visible:ring-offset-[--background]";
 const ghostLinkClass =
-  "inline-flex items-center justify-center gap-2 rounded-lg border border-[--border] px-4 py-2 text-sm font-medium text-[--text-secondary] transition-colors hover:border-[--text-muted] hover:text-[--text-primary] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--border] focus-visible:ring-offset-2 focus-visible:ring-offset-[--background]";
+  "inline-flex items-center justify-center gap-2 rounded-lg border border-[--border] px-4 py-2 text-sm font-medium text-[--text-secondary] transition-colors hover:border-[--text-muted] hover:bg-[--surface-raised] hover:text-[--text-primary] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[--border] focus-visible:ring-offset-2 focus-visible:ring-offset-[--background]";
 
 function formatStatus(value: string) {
   return value
@@ -69,95 +69,134 @@ export default async function CandidateDashboardPage() {
         </div>
       </div>
 
-      <section className="grid gap-4 md:grid-cols-4">
-        {[
-          { label: "Applications", value: applications.length },
-          { label: "In review", value: inReview },
-          { label: "Interviews", value: interviewsScheduled },
-          { label: "Completed", value: completedInterviews },
-        ].map((stat) => (
-          <Card key={stat.label}>
-            <CardHeader>
-              <CardDescription>{stat.label}</CardDescription>
-              <CardTitle>{stat.value}</CardTitle>
-            </CardHeader>
-          </Card>
-        ))}
-      </section>
+      <div className="grid gap-6 lg:grid-cols-12">
+        <section className="flex flex-col gap-6 lg:col-span-8">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { label: "Applications", value: applications.length },
+              { label: "In review", value: inReview },
+              { label: "Interviews", value: interviewsScheduled },
+              { label: "Completed", value: completedInterviews },
+            ].map((stat) => (
+              <Card key={stat.label}>
+                <CardHeader>
+                  <CardDescription>{stat.label}</CardDescription>
+                  <CardTitle>{stat.value}</CardTitle>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent applications</CardTitle>
-            <CardDescription>Latest roles you applied for.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {applications.length === 0 ? (
-              <div className="rounded-lg border border-[--border-subtle] bg-[--surface-raised] p-6 text-sm text-[--text-secondary]">
-                Apply to your first job to get started.
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3">
-                {applications.slice(0, 5).map((application) => (
-                  <div
-                    key={application.id}
-                    className="rounded-lg border border-[--border] bg-[--surface-raised] px-4 py-3"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div>
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent applications</CardTitle>
+              <CardDescription>Latest roles you applied for.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {applications.length === 0 ? (
+                <div className="rounded-lg border border-[--border-subtle] bg-[--surface-raised] p-6 text-sm text-[--text-secondary]">
+                  Apply to your first job to get started.
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {applications.slice(0, 5).map((application) => (
+                    <div
+                      key={application.id}
+                      className="rounded-lg border border-[--border] bg-[--surface-raised] px-4 py-3"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-medium text-[--text-primary]">
+                            {application.job?.title ?? "Role"}
+                          </p>
+                          <p className="text-xs text-[--text-secondary]">
+                            {application.job?.department} · {application.job?.location}
+                          </p>
+                        </div>
+                        <Badge className="status-pulse">
+                          {formatStatus(application.status)}
+                        </Badge>
+                      </div>
+                      {application.match_score != null ? (
+                        <div className="mt-2">
+                          <ScoreBadge score={application.match_score} />
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+
+        <aside className="flex flex-col gap-4 lg:col-span-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Upcoming interviews</CardTitle>
+              <CardDescription>Next scheduled sessions.</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-3 text-sm text-[--text-secondary]">
+              {interviewsScheduled === 0 ? (
+                <div className="rounded-lg border border-[--border-subtle] bg-[--surface-raised] p-4 text-sm text-[--text-secondary]">
+                  No interviews scheduled yet.
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {applications
+                    .filter((application) => application.status === "interview_scheduled")
+                    .slice(0, 3)
+                    .map((application) => (
+                      <div
+                        key={application.id}
+                        className="rounded-lg border border-[--border] bg-[--surface-raised] px-4 py-3"
+                      >
                         <p className="text-sm font-medium text-[--text-primary]">
-                          {application.job?.title ?? "Role"}
+                          {application.job?.title ?? "Interview"}
                         </p>
                         <p className="text-xs text-[--text-secondary]">
-                          {application.job?.department} · {application.job?.location}
+                          Waiting on scheduling details
                         </p>
                       </div>
-                      <Badge>{formatStatus(application.status)}</Badge>
-                    </div>
-                    {application.match_score != null ? (
-                      <div className="mt-2">
-                        <ScoreBadge score={application.match_score} />
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                    ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Recommended roles</CardTitle>
-            <CardDescription>Fresh roles that match your profile.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {jobs.length === 0 ? (
-              <div className="rounded-lg border border-[--border-subtle] bg-[--surface-raised] p-6 text-sm text-[--text-secondary]">
-                No open roles yet.
-              </div>
-            ) : (
-              <div className="flex flex-col gap-3">
-                {jobs.slice(0, 4).map((job) => (
-                  <div
-                    key={job.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[--border] bg-[--surface-raised] px-4 py-3"
-                  >
-                    <div>
-                      <p className="text-sm font-medium text-[--text-primary]">
-                        {job.title}
-                      </p>
-                      <p className="text-xs text-[--text-secondary]">
-                        {job.department} · {job.location}
-                      </p>
+          <Card>
+            <CardHeader>
+              <CardTitle>Recommended roles</CardTitle>
+              <CardDescription>Fresh roles that match your profile.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {jobs.length === 0 ? (
+                <div className="rounded-lg border border-[--border-subtle] bg-[--surface-raised] p-6 text-sm text-[--text-secondary]">
+                  No open roles yet.
+                </div>
+              ) : (
+                <div className="flex flex-col gap-3">
+                  {jobs.slice(0, 4).map((job) => (
+                    <div
+                      key={job.id}
+                      className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[--border] bg-[--surface-raised] px-4 py-3"
+                    >
+                      <div>
+                        <p className="text-sm font-medium text-[--text-primary]">
+                          {job.title}
+                        </p>
+                        <p className="text-xs text-[--text-secondary]">
+                          {job.department} · {job.location}
+                        </p>
+                      </div>
+                      <Badge>{job.experience_level}</Badge>
                     </div>
-                    <Badge>{job.experience_level}</Badge>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </aside>
       </div>
     </div>
   );

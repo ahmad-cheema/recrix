@@ -122,14 +122,12 @@ export default async function RecruiterScreeningPage() {
                     {application.match_score != null ? (
                       <ScoreBadge score={application.match_score} />
                     ) : null}
-                    {application.job?.id ? (
-                      <Link
-                        className={ghostLinkClass}
-                        href={`/recruiter/jobs/${application.job.id}/applications/${application.id}`}
-                      >
-                        Review
-                      </Link>
-                    ) : null}
+                    <Link
+                      className={ghostLinkClass}
+                      href={`/recruiter/applications/${application.id}`}
+                    >
+                      Review
+                    </Link>
                   </div>
                 </div>
               ))}

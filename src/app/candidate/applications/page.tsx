@@ -1,8 +1,10 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getSessionPayload } from "@/lib/auth/session";
 import { listCandidateApplications } from "@/lib/applications/service";
 import { listInterviewSessionsForApplications } from "@/lib/interviews/service";
 import CandidateApplicationsClient from "./CandidateApplicationsClient";
+import CandidateApplicationsLoading from "./loading";
 
 export default async function CandidateApplicationsPage() {
   const session = await getSessionPayload();
@@ -37,9 +39,11 @@ export default async function CandidateApplicationsPage() {
   );
 
   return (
-    <CandidateApplicationsClient
-      applications={applications}
-      sessions={latestSessionByApplication}
-    />
+    <Suspense fallback={<CandidateApplicationsLoading />}>
+      <CandidateApplicationsClient
+        applications={applications}
+        sessions={latestSessionByApplication}
+      />
+    </Suspense>
   );
 }

@@ -65,7 +65,7 @@ export async function POST(
       },
     });
 
-    return response.toDataStreamResponse();
+    return response.toTextStreamResponse();
   } catch (error) {
     if (error instanceof AppError) {
       return NextResponse.json(

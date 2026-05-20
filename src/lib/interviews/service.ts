@@ -26,13 +26,20 @@ export async function createInterviewSession(
   try {
     const client = createAdminClient();
 
-    const { data: application, error: applicationError } = await client
+    const { data: applicationData, error: applicationError } = await client
       .from("applications")
       .select(
         "id, status, candidate_id, job:jobs(id, title, description)"
       )
       .eq("id", applicationId)
       .maybeSingle();
+
+    const application = applicationData as {
+      id: string;
+      status: string;
+      candidate_id: string;
+      job: { id: string; title: string; description: string } | null;
+    } | null;
 
     if (applicationError) {
       throw new AppError("INTERNAL_ERROR", "Failed to load application.", 500);

@@ -51,7 +51,7 @@ export default async function RecruiterApplicantsPage() {
       <div className="grid gap-4 lg:grid-cols-5">
         {columns.map((column) => {
           const items = applications.filter((application) =>
-            column.statuses.includes(application.status)
+            (column.statuses as readonly string[]).includes(application.status)
           );
 
           return (
@@ -84,14 +84,12 @@ export default async function RecruiterApplicantsPage() {
                             <ScoreBadge score={application.match_score} />
                           ) : null}
                         </div>
-                        {application.job?.id ? (
-                          <Link
-                            className={`${ghostLinkClass} mt-3`}
-                            href={`/recruiter/jobs/${application.job.id}/applications/${application.id}`}
-                          >
-                            Open profile
-                          </Link>
-                        ) : null}
+                        <Link
+                          className={`${ghostLinkClass} mt-3`}
+                          href={`/recruiter/applications/${application.id}`}
+                        >
+                          Open profile
+                        </Link>
                       </div>
                     ))}
                   </div>

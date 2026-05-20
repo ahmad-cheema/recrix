@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { createPortal } from "react-dom";
 import { cn } from "@/lib/utils";
 
 export interface ModalProps {
@@ -21,14 +22,35 @@ export function Modal({
   children,
   className,
 }: ModalProps) {
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
   React.useEffect(() => {
     if (!open) {
       return;
     }
-    const originalOverflow = document.body.style.overflow;
+    const scrollY = window.scrollY;
+    const originalBodyStyles = {
+      overflow: document.body.style.overflow,
+      position: document.body.style.position,
+      top: document.body.style.top,
+      width: document.body.style.width,
+    };
+
     document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.width = "100%";
+
     return () => {
-      document.body.style.overflow = originalOverflow;
+      document.body.style.overflow = originalBodyStyles.overflow;
+      document.body.style.position = originalBodyStyles.position;
+      document.body.style.top = originalBodyStyles.top;
+      document.body.style.width = originalBodyStyles.width;
+      window.scrollTo(0, scrollY);
     };
   }, [open]);
 
@@ -47,28 +69,32 @@ export function Modal({
     };
   }, [open, onClose]);
 
-  return (
+  if (!mounted) {
+    return null;
+  }
+
+  const content = (
     <AnimatePresence>
       {open ? (
         <motion.div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.15 }}
+          transition={{ duration: 0.2 }}
           onClick={onClose}
         >
           <motion.div
             role="dialog"
             aria-modal="true"
             className={cn(
-              "w-full max-w-lg rounded-xl border border-[--border] bg-[--surface]",
+              "max-h-[85vh] w-full max-w-lg overflow-y-auto rounded-xl border border-[--border] bg-[--surface]",
               className
             )}
-            initial={{ opacity: 0, scale: 0.97 }}
+            initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.97 }}
-            transition={{ duration: 0.15 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.2 }}
             onClick={(event) => event.stopPropagation()}
           >
             {(title || description) && (
@@ -91,4 +117,6 @@ export function Modal({
       ) : null}
     </AnimatePresence>
   );
+
+  return createPortal(content, document.body);
 }
